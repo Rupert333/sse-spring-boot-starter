@@ -1,6 +1,5 @@
 package com.block.sse.starter.config;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -10,7 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author sse-starter
  * @since 1.0.0
  */
-@Data
 @ConfigurationProperties(prefix = "sse")
 public class SseProperties {
     /**
@@ -73,5 +71,77 @@ public class SseProperties {
      * 默认值："redis"
      */
     private String handlerType = "redis";
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
+    public long getHeartbeatInterval() {
+        return heartbeatInterval;
+    }
+
+    public void setHeartbeatInterval(long heartbeatInterval) {
+        this.heartbeatInterval = heartbeatInterval;
+    }
+
+    public String getChannelPrefix() {
+        return channelPrefix;
+    }
+
+    public void setChannelPrefix(String channelPrefix) {
+        this.channelPrefix = channelPrefix;
+    }
+
+    public long getReconnectDelay() {
+        return reconnectDelay;
+    }
+
+    public void setReconnectDelay(long reconnectDelay) {
+        this.reconnectDelay = reconnectDelay;
+    }
+
+    public int getMaxRetryAttempts() {
+        return maxRetryAttempts;
+    }
+
+    public void setMaxRetryAttempts(int maxRetryAttempts) {
+        this.maxRetryAttempts = maxRetryAttempts;
+    }
+
+    public boolean isHeartbeatEnabled() {
+        return heartbeatEnabled;
+    }
+
+    public void setHeartbeatEnabled(boolean heartbeatEnabled) {
+        this.heartbeatEnabled = heartbeatEnabled;
+    }
+
+    public String getHeartbeatMessage() {
+        return heartbeatMessage;
+    }
+
+    public void setHeartbeatMessage(String heartbeatMessage) {
+        this.heartbeatMessage = heartbeatMessage;
+    }
+
+    public boolean isRedisEnabled() {
+        return redisEnabled;
+    }
+
+    public void setRedisEnabled(boolean redisEnabled) {
+        this.redisEnabled = redisEnabled;
+    }
+
+    public String getHandlerType() {
+        return handlerType;
+    }
+
+    public void setHandlerType(String handlerType) {
+        this.handlerType = handlerType;
+    }
 }
 

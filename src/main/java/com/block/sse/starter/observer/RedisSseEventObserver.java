@@ -2,8 +2,8 @@ package com.block.sse.starter.observer;
 
 import com.block.sse.starter.config.SseProperties;
 import com.block.sse.starter.service.SseManager;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -18,15 +18,21 @@ import java.util.concurrent.ConcurrentMap;
  * Redis SSE事件观察者
  * 处理Redis发布/订阅消息并转发给SSE客户端
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 @ConditionalOnClass(RedisMessageListenerContainer.class)
 public class RedisSseEventObserver implements SseEventObserver {
     private final RedisMessageListenerContainer listenerContainer;
     private final SseProperties sseProperties;
     private final SseManager sseManager;
-    
+
+    private static Logger log = LoggerFactory.getLogger(RedisSseEventObserver.class);
+
+    public RedisSseEventObserver(RedisMessageListenerContainer listenerContainer, SseProperties sseProperties, SseManager sseManager) {
+        this.listenerContainer = listenerContainer;
+        this.sseProperties = sseProperties;
+        this.sseManager = sseManager;
+    }
+
     // 存储客户端ID和对应的消息监听器
     private final ConcurrentMap<String, MessageListener> clientListeners = new ConcurrentHashMap<>();
 
@@ -35,7 +41,7 @@ public class RedisSseEventObserver implements SseEventObserver {
         try {
             // 为新连接的客户端创建 Redis 订阅
             ChannelTopic topic = new ChannelTopic(sseProperties.getChannelPrefix() + clientId);
-            
+
             // 创建消息监听器
             MessageListener messageListener = new MessageListener() {
                 @Override
@@ -43,7 +49,7 @@ public class RedisSseEventObserver implements SseEventObserver {
                     try {
                         String messageBody = new String(message.getBody());
                         log.debug("Received Redis message for client {}: {}", clientId, messageBody);
-                        
+
                         // 直接发送消息给SSE客户端
                         sseManager.sendDirectMessage(clientId, messageBody);
                     } catch (Exception e) {
@@ -52,11 +58,11 @@ public class RedisSseEventObserver implements SseEventObserver {
                     }
                 }
             };
-            
+
             // 添加监听器
             listenerContainer.addMessageListener(messageListener, topic);
             clientListeners.put(clientId, messageListener);
-            
+
             log.debug("Redis subscription created for client: {}", clientId);
         } catch (Exception e) {
             log.error("Failed to create Redis subscription for client: {}", clientId, e);

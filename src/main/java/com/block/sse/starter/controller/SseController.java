@@ -1,7 +1,6 @@
 package com.block.sse.starter.controller;
 
 import com.block.sse.starter.service.SseManager;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +14,15 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/sse")
-@RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "sse", name = "controller-enabled", havingValue = "true", matchIfMissing = true)
 @CrossOrigin(origins = "*")
 public class SseController {
 
     private final SseManager sseManager;
+
+    public SseController(SseManager sseManager) {
+        this.sseManager = sseManager;
+    }
 
     /**
      * 建立SSE连接

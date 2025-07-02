@@ -6,7 +6,8 @@ import com.block.sse.starter.service.HeartbeatService;
 import com.block.sse.starter.service.SseManager;
 import com.block.sse.starter.strategy.MessageHandler;
 import com.block.sse.starter.strategy.RedisMessageHandler;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,7 +27,6 @@ import java.util.List;
  * SSE自动配置类
  * 根据条件自动配置SSE相关的Bean
  */
-@Slf4j
 @Configuration
 @EnableConfigurationProperties(SseProperties.class)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
@@ -34,13 +34,15 @@ import java.util.List;
 @Import({RedisConfig.class})
 public class SseAutoConfiguration {
 
+    private static Logger log = LoggerFactory.getLogger(SseAutoConfiguration.class);
+
     /**
      * 配置SSE管理器
      */
     @Bean
     @ConditionalOnMissingBean
     public SseManager sseManager(MessageHandler messageHandler, SseProperties properties) {
-        log.info("Configuring SSE Manager with handler type: {}", 
+        log.info("Configuring SSE Manager with handler type: {}",
                 messageHandler != null ? messageHandler.getType() : "none");
         return new SseManager(messageHandler, properties);
     }
@@ -52,7 +54,7 @@ public class SseAutoConfiguration {
     @ConditionalOnClass({RedisTemplate.class})
     @ConditionalOnProperty(prefix = "sse", name = "handler-type", havingValue = "redis", matchIfMissing = true)
     @ConditionalOnMissingBean(MessageHandler.class)
-    public RedisMessageHandler redisMessageHandler(RedisTemplate<String, String> redisTemplate, 
+    public RedisMessageHandler redisMessageHandler(RedisTemplate<String, String> redisTemplate,
                                                    SseProperties properties) {
         log.info("Configuring Redis Message Handler");
         return new RedisMessageHandler(redisTemplate, properties);
@@ -88,7 +90,7 @@ public class SseAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "sseObserverRegistrar")
-    public SseObserverRegistrar sseObserverRegistrar(SseManager sseManager, 
+    public SseObserverRegistrar sseObserverRegistrar(SseManager sseManager,
                                                      List<SseEventObserver> observers) {
         return new SseObserverRegistrar(sseManager, observers);
     }

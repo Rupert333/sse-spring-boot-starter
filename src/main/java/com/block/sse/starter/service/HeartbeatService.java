@@ -1,8 +1,8 @@
 package com.block.sse.starter.service;
 
 import com.block.sse.starter.config.SseProperties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -17,14 +17,19 @@ import java.util.concurrent.TimeUnit;
  * 心跳服务
  * 定期向所有连接的客户端发送心跳消息以保持连接活跃
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "sse", name = "heartbeat-enabled", havingValue = "true", matchIfMissing = true)
 public class HeartbeatService {
     private final SseManager sseManager;
     private final SseProperties properties;
     private ScheduledExecutorService scheduler;
+
+    private static Logger log = LoggerFactory.getLogger(HeartbeatService.class);
+
+    public HeartbeatService(SseManager sseManager, SseProperties properties) {
+        this.sseManager = sseManager;
+        this.properties = properties;
+    }
 
     @PostConstruct
     public void startHeartbeat() {
@@ -38,14 +43,14 @@ public class HeartbeatService {
             t.setDaemon(true);
             return t;
         });
-        
+
         scheduler.scheduleAtFixedRate(
-            this::sendHeartbeat,
-            properties.getHeartbeatInterval(),
-            properties.getHeartbeatInterval(),
-            TimeUnit.MILLISECONDS
+                this::sendHeartbeat,
+                properties.getHeartbeatInterval(),
+                properties.getHeartbeatInterval(),
+                TimeUnit.MILLISECONDS
         );
-        
+
         log.info("Heartbeat service started with interval: {}ms", properties.getHeartbeatInterval());
     }
 
@@ -54,7 +59,7 @@ public class HeartbeatService {
         if (connectedClients.isEmpty()) {
             return;
         }
-        
+
         log.debug("Sending heartbeat to {} clients", connectedClients.size());
         connectedClients.forEach(clientId -> {
             try {

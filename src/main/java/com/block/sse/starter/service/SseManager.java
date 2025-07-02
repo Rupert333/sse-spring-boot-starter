@@ -3,7 +3,8 @@ package com.block.sse.starter.service;
 import com.block.sse.starter.config.SseProperties;
 import com.block.sse.starter.observer.SseEventObserver;
 import com.block.sse.starter.strategy.MessageHandler;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -17,7 +18,6 @@ import java.util.function.Consumer;
  * SSE连接管理器
  * 负责管理SSE连接的核心类，处理连接的建立、消息发送和连接关闭
  */
-@Slf4j
 @Component
 public class SseManager {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
@@ -25,6 +25,8 @@ public class SseManager {
 
     private final MessageHandler messageHandler;
     private final SseProperties properties;
+
+    private static Logger log = LoggerFactory.getLogger(SseManager.class);
 
     public SseManager(@Autowired(required = false) MessageHandler messageHandler, SseProperties properties) {
         this.messageHandler = messageHandler;
@@ -48,12 +50,12 @@ public class SseManager {
      */
     public SseEmitter connect(String clientId) {
         SseEmitter emitter = new SseEmitter(properties.getTimeout());
-        
+
         emitter.onCompletion(() -> {
             disconnect(clientId);
             notifyObservers(obs -> obs.onDisconnect(clientId));
         });
-        
+
         emitter.onTimeout(() -> {
             log.warn("SSE connection timeout for client: {}", clientId);
             disconnect(clientId);
@@ -71,7 +73,7 @@ public class SseManager {
         sendDirectMessage(clientId, properties.getHeartbeatMessage());
         // 通知观察者
         notifyObservers(obs -> obs.onConnect(clientId));
-        
+
         return emitter;
     }
 
@@ -79,7 +81,7 @@ public class SseManager {
      * 发送消息到指定客户端（通过消息处理器）
      *
      * @param clientId 目标客户端ID
-     * @param message 消息内容
+     * @param message  消息内容
      * @return 发送是否成功
      */
     public boolean sendMessage(String clientId, Object message) {
@@ -88,7 +90,7 @@ public class SseManager {
             log.warn("sending message directly");
             return sendDirectMessage(clientId, message);
         }
-        
+
         try {
             messageHandler.handleMessage(clientId, message);
             return true;
@@ -103,7 +105,7 @@ public class SseManager {
      * 直接发送消息到指定客户端
      *
      * @param clientId 目标客户端ID
-     * @param message 消息内容
+     * @param message  消息内容
      * @return 发送是否成功
      */
     public boolean sendDirectMessage(String clientId, Object message) {
@@ -131,7 +133,7 @@ public class SseManager {
      * 处理客户端错误
      *
      * @param clientId 客户端ID
-     * @param e 异常
+     * @param e        异常
      */
     public void handleClientError(String clientId, Exception e) {
         log.error("Client error for {}", clientId, e);
