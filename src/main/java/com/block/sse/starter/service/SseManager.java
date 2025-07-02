@@ -1,6 +1,7 @@
 package com.block.sse.starter.service;
 
 import com.block.sse.starter.config.SseProperties;
+import com.block.sse.starter.enums.SystemEventEnum;
 import com.block.sse.starter.observer.SseEventObserver;
 import com.block.sse.starter.strategy.MessageHandler;
 import org.slf4j.Logger;
@@ -70,7 +71,7 @@ public class SseManager {
 
         emitters.put(clientId, emitter);
         // 发送连接确认消息
-        sendDirectMessage(clientId, properties.getHeartbeatMessage());
+        sendDirectMessage(clientId, SystemEventEnum.CONNECT.name(), properties.getHeartbeatMessage());
         // 通知观察者
         notifyObservers(obs -> obs.onConnect(clientId));
 
@@ -84,15 +85,14 @@ public class SseManager {
      * @param message  消息内容
      * @return 发送是否成功
      */
-    public boolean sendMessage(String clientId, Object message) {
+    public boolean sendMessage(String clientId, String eventName, Object message) {
         SseEmitter emitter = emitters.get(clientId);
         if (emitter != null) {
             log.warn("sending message directly");
-            return sendDirectMessage(clientId, message);
+            return sendDirectMessage(clientId, eventName, message);
         }
-
         try {
-            messageHandler.handleMessage(clientId, message);
+            messageHandler.handleMessage(clientId, eventName, message);
             return true;
         } catch (Exception e) {
             log.error("Error sending message to client {} via handler", clientId, e);
@@ -108,7 +108,7 @@ public class SseManager {
      * @param message  消息内容
      * @return 发送是否成功
      */
-    public boolean sendDirectMessage(String clientId, Object message) {
+    public boolean sendDirectMessage(String clientId, String eventName, Object message) {
         SseEmitter emitter = emitters.get(clientId);
         if (emitter == null) {
             log.warn("No SSE connection found for client: {}", clientId);
@@ -117,9 +117,10 @@ public class SseManager {
 
         try {
             emitter.send(SseEmitter.event()
+                    .name(eventName)
                     .data(message)
                     .reconnectTime(properties.getReconnectDelay()));
-            log.debug("Message sent directly to client: {}", clientId);
+            log.debug("Message sent directly to client: {}, eventName:{}", clientId, eventName);
             return true;
         } catch (IOException e) {
             log.error("Failed to send message to client: {}", clientId, e);

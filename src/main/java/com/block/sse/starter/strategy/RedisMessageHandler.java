@@ -1,6 +1,7 @@
 package com.block.sse.starter.strategy;
 
 import com.block.sse.starter.config.SseProperties;
+import com.block.sse.starter.domain.SseRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -25,12 +26,12 @@ public class RedisMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void handleMessage(String clientId, Object message) {
+    public void handleMessage(String clientId, String eventName, Object message) {
         try {
             String channel = properties.getChannelPrefix() + clientId;
-            String messageStr = message != null ? String.valueOf(message) : "";
-            redisTemplate.convertAndSend(channel, messageStr);
-            log.debug("Message sent to Redis channel: {} for client: {}", channel, clientId);
+            SseRequest request = new SseRequest(clientId, eventName, message);
+            redisTemplate.convertAndSend(channel, request.toString());
+            log.debug("Message sent to Redis channel: {} for client: {}, eventName{}", channel, clientId, eventName);
         } catch (Exception e) {
             log.error("Failed to send message to Redis for client: {}", clientId, e);
             throw e;
