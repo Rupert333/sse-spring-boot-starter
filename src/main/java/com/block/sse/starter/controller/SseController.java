@@ -1,8 +1,10 @@
 package com.block.sse.starter.controller;
 
+import com.block.sse.starter.domain.SseRequest;
 import com.block.sse.starter.service.SseManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -39,44 +41,25 @@ public class SseController {
      * 发送消息到指定客户端
      *
      * @param clientId 客户端ID
-     * @param message 消息内容
+     * @param message  消息内容
      * @return 响应结果
      */
-    @PostMapping("/send/{clientId}")
-    public ResponseEntity<String> sendMessage(
-            @PathVariable("clientId") String clientId,
-            @RequestBody Object message) {
-        boolean sent = sseManager.sendMessage(clientId, message);
+    @PostMapping("/send")
+    public ResponseEntity<String> sendMessage(@RequestBody @Validated SseRequest request) {
+        boolean sent = sseManager.sendMessage(request.getClientId(), request.getEventName(), request.getData());
         return sent
                 ? ResponseEntity.ok("Message sent successfully")
                 : ResponseEntity.notFound().build();
     }
 
     /**
-     * 获取所有连接状态
+     * 获取当前实例所有连接状态
      *
      * @return 连接状态映射
      */
     @GetMapping("/status")
     public Map<String, String> getStatus() {
         return sseManager.getStatus();
-    }
-
-    /**
-     * 广播消息到所有连接的客户端
-     *
-     * @param message 消息内容
-     * @return 响应结果
-     */
-    @PostMapping("/broadcast")
-    public ResponseEntity<String> broadcast(@RequestBody Object message) {
-        int successCount = 0;
-        for (String clientId : sseManager.getConnectedClients()) {
-            if (sseManager.sendMessage(clientId, message)) {
-                successCount++;
-            }
-        }
-        return ResponseEntity.ok(String.format("Message sent to %d clients", successCount));
     }
 }
 

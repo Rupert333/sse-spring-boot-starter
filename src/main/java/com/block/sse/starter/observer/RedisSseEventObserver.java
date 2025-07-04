@@ -1,7 +1,9 @@
 package com.block.sse.starter.observer;
 
 import com.block.sse.starter.config.SseProperties;
+import com.block.sse.starter.domain.SseRequest;
 import com.block.sse.starter.service.SseManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -50,8 +52,12 @@ public class RedisSseEventObserver implements SseEventObserver {
                         String messageBody = new String(message.getBody());
                         log.debug("Received Redis message for client {}: {}", clientId, messageBody);
 
+                        // messageBody -> SSeRequest
+                        ObjectMapper mapper = new ObjectMapper();
+                        SseRequest request = mapper.readValue(messageBody, SseRequest.class);
+
                         // 直接发送消息给SSE客户端
-                        sseManager.sendDirectMessage(clientId, messageBody);
+                        sseManager.sendDirectMessage(clientId, request.getEventName(), request.getData());
                     } catch (Exception e) {
                         log.error("Error processing Redis message for client {}", clientId, e);
                         sseManager.handleClientError(clientId, e);

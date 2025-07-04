@@ -1,6 +1,7 @@
 package com.block.sse.starter.service;
 
 import com.block.sse.starter.config.SseProperties;
+import com.block.sse.starter.enums.SystemEventEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -63,7 +64,7 @@ public class HeartbeatService {
         log.debug("Sending heartbeat to {} clients", connectedClients.size());
         connectedClients.forEach(clientId -> {
             try {
-                sseManager.sendDirectMessage(clientId, properties.getHeartbeatMessage());
+                sseManager.sendDirectMessage(clientId, SystemEventEnum.HEARTBEAT.name(), properties.getHeartbeatMessage());
             } catch (Exception e) {
                 log.error("Failed to send heartbeat to client {}", clientId, e);
             }
