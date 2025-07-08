@@ -40,13 +40,6 @@ public class SseProperties {
     private long reconnectDelay = 5000;
 
     /**
-     * 最大重试次数
-     * 发送消息失败时的最大重试次数
-     * 默认值：3
-     */
-    private int maxRetryAttempts = 3;
-
-    /**
      * 是否启用心跳机制
      * 控制是否发送定期心跳消息以保持连接
      * 默认值：true
@@ -71,6 +64,16 @@ public class SseProperties {
      * 默认值："redis"
      */
     private String handlerType = "redis";
+
+    /**
+     * 是否启用默认控制器
+     */
+    private Boolean controllerEnabled = true;
+
+    /**
+     * 发送消息续传时时间间隔(此间隔用于控制创建连接后延迟多久发送需要续传的消息)
+     */
+    private Long retrySendDelayTime = 5000L;
 
     public long getTimeout() {
         return timeout;
@@ -104,14 +107,6 @@ public class SseProperties {
         this.reconnectDelay = reconnectDelay;
     }
 
-    public int getMaxRetryAttempts() {
-        return maxRetryAttempts;
-    }
-
-    public void setMaxRetryAttempts(int maxRetryAttempts) {
-        this.maxRetryAttempts = maxRetryAttempts;
-    }
-
     public boolean isHeartbeatEnabled() {
         return heartbeatEnabled;
     }
@@ -142,6 +137,22 @@ public class SseProperties {
 
     public void setHandlerType(String handlerType) {
         this.handlerType = handlerType;
+    }
+
+    public Long getRetrySendDelayTime() {
+        return retrySendDelayTime;
+    }
+
+    public void setRetrySendDelayTime(Long retrySendDelayTime) {
+        this.retrySendDelayTime = retrySendDelayTime;
+    }
+
+    public Boolean getControllerEnabled() {
+        return controllerEnabled;
+    }
+
+    public void setControllerEnabled(Boolean controllerEnabled) {
+        this.controllerEnabled = controllerEnabled;
     }
 }
 

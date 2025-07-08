@@ -4,10 +4,12 @@ import com.block.sse.starter.observer.RedisSseEventObserver;
 import com.block.sse.starter.observer.SseEventObserver;
 import com.block.sse.starter.service.HeartbeatService;
 import com.block.sse.starter.service.SseManager;
+import com.block.sse.starter.service.SseMsgService;
 import com.block.sse.starter.strategy.MessageHandler;
 import com.block.sse.starter.strategy.RedisMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,9 +20,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -37,14 +43,51 @@ public class SseAutoConfiguration {
     private static Logger log = LoggerFactory.getLogger(SseAutoConfiguration.class);
 
     /**
+     * 应用启动后打印自定义Banner和SSE配置信息
+     */
+    @Bean
+    public ApplicationRunner ssePropertiesBanner(SseProperties properties) {
+        return args -> {
+            // 1. 打印自定义 Banner
+            try {
+                ClassPathResource bannerResource = new ClassPathResource("banner/banner.txt");
+                if (bannerResource.exists()) {
+                    String banner = StreamUtils.copyToString(bannerResource.getInputStream(), StandardCharsets.UTF_8);
+                    System.out.println(banner); // 直接使用 System.out.println 打印，因为通常 Banner 不会带时间戳等日志前缀
+                } else {
+                    log.warn("Custom banner.txt not found in resources.");
+                }
+            } catch (IOException e) {
+                log.error("Error reading custom banner.txt", e);
+            }
+
+            // 2. 打印 SSE 配置信息
+            log.info("-----------------------------------------------------------");
+            log.info("\t\tSSE Spring Boot Starter Configuration");
+            log.info("-----------------------------------------------------------");
+            log.info("  sse.timeout: {} ms", properties.getTimeout());
+            log.info("  sse.heartbeatInterval: {} ms", properties.getHeartbeatInterval());
+            log.info("  sse.heartbeatEnabled: {}", properties.isHeartbeatEnabled());
+            log.info("  sse.heartbeatMessage: {}", properties.getHeartbeatMessage());
+            log.info("  sse.channelPrefix: {}", properties.getChannelPrefix());
+            log.info("  sse.reconnectDelay: {} ms", properties.getReconnectDelay());
+            log.info("  sse.handlerType: {}", properties.getHandlerType());
+            log.info("  sse.redisEnabled: {}", properties.isRedisEnabled());
+            log.info("  sse.controllerEnabled: {}", properties.getControllerEnabled());
+            log.info("  sse.retrySendDelayTime: {}", properties.getRetrySendDelayTime());
+            log.info("-----------------------------------------------------------");
+        };
+    }
+
+    /**
      * 配置SSE管理器
      */
     @Bean
     @ConditionalOnMissingBean
-    public SseManager sseManager(MessageHandler messageHandler, SseProperties properties) {
+    public SseManager sseManager(MessageHandler messageHandler, SseProperties properties, SseMsgService msgService) {
         log.info("Configuring SSE Manager with handler type: {}",
                 messageHandler != null ? messageHandler.getType() : "none");
-        return new SseManager(messageHandler, properties);
+        return new SseManager(messageHandler, properties, msgService);
     }
 
     /**

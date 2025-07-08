@@ -1,13 +1,17 @@
 package com.block.sse.starter.controller;
 
-import com.block.sse.starter.domain.SseRequest;
+import com.block.sse.starter.domain.MsgRequest;
 import com.block.sse.starter.service.SseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -20,11 +24,11 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class SseController {
 
-    private final SseManager sseManager;
+    @Resource
+    private SseManager sseManager;
 
-    public SseController(SseManager sseManager) {
-        this.sseManager = sseManager;
-    }
+    private static Logger log = LoggerFactory.getLogger(SseController.class);
+
 
     /**
      * 建立SSE连接
@@ -33,8 +37,11 @@ public class SseController {
      * @return SSE发射器
      */
     @GetMapping("/connect/{clientId}")
-    public SseEmitter connect(@PathVariable("clientId") String clientId) {
-        return sseManager.connect(clientId);
+    public SseEmitter connect(@PathVariable("clientId") String clientId,
+                              HttpServletRequest request) {
+        String lastEventId = request.getHeader("Last-Event-ID");
+        log.info("Client :{} connecting. Last-Event-ID:{}", clientId, lastEventId);
+        return sseManager.connect(clientId, lastEventId);
     }
 
     /**
@@ -45,8 +52,8 @@ public class SseController {
      * @return 响应结果
      */
     @PostMapping("/send")
-    public ResponseEntity<String> sendMessage(@RequestBody @Validated SseRequest request) {
-        boolean sent = sseManager.sendMessage(request.getClientId(), request.getEventName(), request.getData());
+    public ResponseEntity<String> sendMessage(@RequestBody @Validated MsgRequest request) {
+        boolean sent = sseManager.sendMessage(request.getClientId(), request.getEventId(), request.getEventName(), request.getData());
         return sent
                 ? ResponseEntity.ok("Message sent successfully")
                 : ResponseEntity.notFound().build();

@@ -98,17 +98,18 @@ eventSource.onerror = function(event) {
 
 ## 配置选项
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `sse.timeout` | 30000 | SSE 连接超时时间（毫秒） |
-| `sse.heartbeat-interval` | 15000 | 心跳间隔（毫秒） |
-| `sse.heartbeat-enabled` | true | 是否启用心跳 |
-| `sse.heartbeat-message` | "ping" | 心跳消息内容 |
-| `sse.channel-prefix` | "sse:channel:" | Redis 通道前缀 |
-| `sse.reconnect-delay` | 5000 | 客户端重连延迟（毫秒） |
-| `sse.handler-type` | "redis" | 消息处理器类型（redis/local） |
-| `sse.redis-enabled` | true | 是否启用 Redis 支持 |
-| `sse.controller-enabled` | true | 是否启用默认控制器 |
+| 配置项                      | 默认值 | 说明 |
+|--------------------------|--------|------|
+| `sse.timeout`            | 30000 | SSE 连接超时时间（毫秒） |
+| `sse.heartbeatInterval`  | 15000 | 心跳间隔（毫秒） |
+| `sse.heartbeatEnabled`   | true | 是否启用心跳 |
+| `sse.heartbeatMessage`   | "ping" | 心跳消息内容 |
+| `sse.channelPrefix`      | "sse:channel:" | Redis 通道前缀 |
+| `sse.reconnectDelay`     | 5000 | 客户端重连延迟（毫秒） |
+| `sse.handlerType`        | "redis" | 消息处理器类型（redis/local） |
+| `sse.redisEnabled`       | true | 是否启用 Redis 支持 |
+| `sse.controllerEnabled`  | true | 是否启用默认控制器 |
+| `sse.retrySendDelayTime` | true | 发送消息续传时时间间隔(此间隔用于控制创建连接后延迟多久发送需要续传的消息) |
 
 ## 架构设计
 

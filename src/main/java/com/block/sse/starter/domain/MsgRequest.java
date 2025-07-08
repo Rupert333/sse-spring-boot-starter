@@ -8,18 +8,20 @@ import javax.validation.constraints.NotEmpty;
  * @author yangyg
  * @date 2025/7/2 17:39
  */
-public class SseRequest {
+public class MsgRequest {
     @NotEmpty(message = "clientId不能为空")
     private String clientId;
+    private String eventId;
     @NotEmpty(message = "eventName不能为空")
     private String eventName;
     private Object data;
 
-    public SseRequest() {
+    public MsgRequest() {
     }
 
-    public SseRequest(String clientId, String eventName, Object data) {
+    public MsgRequest(String clientId, String eventId, String eventName, Object data) {
         this.clientId = clientId;
+        this.eventId = eventId;
         this.eventName = eventName;
         this.data = data;
     }
@@ -30,6 +32,14 @@ public class SseRequest {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
     }
 
     public String getEventName() {
@@ -51,6 +61,6 @@ public class SseRequest {
     @Override
     public String toString() {
         // json形式
-        return "{\"clientId\":\"" + clientId + "\",\"eventName\":\"" + eventName + "\",\"data\":" + data + "}";
+        return "{\"clientId\":\"" + clientId + "\",\"eventId\":\"" + eventId + "\",\"eventName\":\"" + eventName + "\",\"data\":" + data + "}";
     }
 }

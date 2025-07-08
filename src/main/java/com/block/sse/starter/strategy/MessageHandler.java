@@ -12,7 +12,7 @@ public interface MessageHandler {
      * @param eventName 事件名称
      * @param message 要发送的消息内容
      */
-    void handleMessage(String clientId, String eventName, Object message);
+    void handleMessage(String clientId, String eventId, String eventName, Object message);
 
     /**
      * 获取消息处理器类型

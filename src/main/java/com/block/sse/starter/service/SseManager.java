@@ -1,6 +1,7 @@
 package com.block.sse.starter.service;
 
 import com.block.sse.starter.config.SseProperties;
+import com.block.sse.starter.domain.MsgRequest;
 import com.block.sse.starter.enums.SystemEventEnum;
 import com.block.sse.starter.observer.SseEventObserver;
 import com.block.sse.starter.strategy.MessageHandler;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -23,15 +25,18 @@ import java.util.function.Consumer;
 public class SseManager {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final List<SseEventObserver> observers = new ArrayList<>();
+    private static Logger log = LoggerFactory.getLogger(SseManager.class);
+    private static final String DEFAULT_EVENT_ID = "0";
 
     private final MessageHandler messageHandler;
     private final SseProperties properties;
+    private final SseMsgService msgService;
 
-    private static Logger log = LoggerFactory.getLogger(SseManager.class);
 
-    public SseManager(@Autowired(required = false) MessageHandler messageHandler, SseProperties properties) {
+    public SseManager(@Autowired(required = false) MessageHandler messageHandler, SseProperties properties, SseMsgService msgService) {
         this.messageHandler = messageHandler;
         this.properties = properties;
+        this.msgService = msgService;
     }
 
     /**
@@ -71,11 +76,25 @@ public class SseManager {
 
         emitters.put(clientId, emitter);
         // 发送连接确认消息
-        sendDirectMessage(clientId, SystemEventEnum.CONNECT.name(), properties.getHeartbeatMessage());
+        sendDirectMessage(clientId, DEFAULT_EVENT_ID, SystemEventEnum.CONNECT.name(), properties.getHeartbeatMessage());
         // 通知观察者
         notifyObservers(obs -> obs.onConnect(clientId));
 
         return emitter;
+    }
+
+    /**
+     * 建立新的SSE连接
+     *
+     * @param clientId 客户端ID
+     * @param eventId 事件ID
+     * @return SSE发射器实例
+     */
+    public SseEmitter connect(String clientId, String eventId) {
+        SseEmitter sseEmitter = connect(clientId);
+        // 如果是重新连接，并且提供了 Last-Event-ID，则发送缺失的消息
+        sendMissedMessages(clientId, eventId);
+        return sseEmitter;
     }
 
     /**
@@ -85,14 +104,14 @@ public class SseManager {
      * @param message  消息内容
      * @return 发送是否成功
      */
-    public boolean sendMessage(String clientId, String eventName, Object message) {
+    public boolean sendMessage(String clientId, String eventId, String eventName, Object message) {
         SseEmitter emitter = emitters.get(clientId);
         if (emitter != null) {
-            log.warn("sending message directly");
-            return sendDirectMessage(clientId, eventName, message);
+            log.warn("sending message directly  client {}，eventName:{}", clientId, eventName);
+            return sendDirectMessage(clientId, eventId, eventName, message);
         }
         try {
-            messageHandler.handleMessage(clientId, eventName, message);
+            messageHandler.handleMessage(clientId, eventId, eventName, message);
             return true;
         } catch (Exception e) {
             log.error("Error sending message to client {} via handler", clientId, e);
@@ -108,7 +127,7 @@ public class SseManager {
      * @param message  消息内容
      * @return 发送是否成功
      */
-    public boolean sendDirectMessage(String clientId, String eventName, Object message) {
+    public boolean sendDirectMessage(String clientId, String eventId, String eventName, Object message) {
         SseEmitter emitter = emitters.get(clientId);
         if (emitter == null) {
             log.warn("No SSE connection found for client: {}", clientId);
@@ -118,6 +137,7 @@ public class SseManager {
         try {
             emitter.send(SseEmitter.event()
                     .name(eventName)
+                    .id(eventId != null ? eventId : msgService.generateMsgId())
                     .data(message)
                     .reconnectTime(properties.getReconnectDelay()));
             log.debug("Message sent directly to client: {}, eventName:{}", clientId, eventName);
@@ -189,6 +209,32 @@ public class SseManager {
                 action.accept(observer);
             } catch (Exception e) {
                 log.error("Error notifying observer", e);
+            }
+        });
+    }
+
+    /**
+     * 消息续传
+     * @param clientId 客户端ID
+     * @param lastEventId 上一次接收到的消息ID
+     * @author yangyg
+     * @date 2025/7/8 11:24
+     */
+    private void sendMissedMessages(String clientId, String lastEventId) {
+        if (null == lastEventId || clientId == null || "0".equals(lastEventId)) {
+            return;
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(properties.getRetrySendDelayTime());
+            }catch (Exception e){
+                log.info("sse 发送续传消息执行延迟时发生错误：{}", e.getMessage());
+            }
+
+            List<MsgRequest> messagesAfter = msgService.getMessagesAfter(clientId, lastEventId);
+            for (MsgRequest msg : messagesAfter) {
+                sendMessage(clientId, msg.getEventId(), msg.getEventName(), msg.getData());
             }
         });
     }

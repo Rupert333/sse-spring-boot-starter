@@ -64,7 +64,7 @@ public class HeartbeatService {
         log.debug("Sending heartbeat to {} clients", connectedClients.size());
         connectedClients.forEach(clientId -> {
             try {
-                sseManager.sendDirectMessage(clientId, SystemEventEnum.HEARTBEAT.name(), properties.getHeartbeatMessage());
+                sseManager.sendDirectMessage(clientId, null, SystemEventEnum.HEARTBEAT.name(), properties.getHeartbeatMessage());
             } catch (Exception e) {
                 log.error("Failed to send heartbeat to client {}", clientId, e);
             }
