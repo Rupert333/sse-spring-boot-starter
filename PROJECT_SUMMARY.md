@@ -23,8 +23,11 @@ sse-spring-boot-starter/                   # Starter 模块
     │   │   └── HeartbeatService.java     # 心跳服务
     │   └── controller/                   # 控制器
     │       └── SseController.java        # SSE REST API
-    └── resources/META-INF/
-        ├── spring.factories              # 自动配置声明
+    └── resources
+        ├── META-INF
+        │ └── spring.factories            # 自动配置说明
+        └── banner
+            └── banner.txt                # banner
 
 ```
 
@@ -38,7 +41,7 @@ sse-spring-boot-starter/                   # Starter 模块
 
 ### 2. 消息处理策略
 - **Redis 模式**: 支持分布式部署，通过 Redis 发布/订阅传递消息
-- **本地模式**: 单机部署，直接内存传递消息
+
 
 ### 3. 连接管理
 - 连接生命周期管理

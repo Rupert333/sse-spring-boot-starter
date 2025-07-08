@@ -1,6 +1,7 @@
 # SSE Spring Boot Starter
 
 一个功能完整的 Spring Boot Starter，用于简化 Server-Sent Events (SSE) 的集成和使用，支持 Redis 分布式消息传递。
+项目介绍请参考：[项目介绍](PROJECT_SUMMARY.md)
 
 ## 特性
 
@@ -19,7 +20,7 @@
 <dependency>
     <groupId>com.block.sse</groupId>
     <artifactId>sse-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -31,7 +32,6 @@
 # SSE 基本配置
 sse.timeout=60000
 sse.heartbeat-interval=15000
-sse.heartbeat-enabled=true
 
 # Redis 配置（可选，用于分布式场景）
 spring.redis.host=localhost
