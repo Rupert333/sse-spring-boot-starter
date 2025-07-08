@@ -2,13 +2,11 @@ package com.block.sse.starter.service.impl;
 
 import com.block.sse.starter.domain.MsgRequest;
 import com.block.sse.starter.service.SseMsgService;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
-public class SseMsgServiceImpl implements SseMsgService {
+public class DefaultSseMsgService implements SseMsgService {
 
     /**
      * 生成一个唯一的 SSE 消息 ID。

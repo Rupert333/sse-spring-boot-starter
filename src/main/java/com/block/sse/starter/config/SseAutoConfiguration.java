@@ -5,6 +5,7 @@ import com.block.sse.starter.observer.SseEventObserver;
 import com.block.sse.starter.service.HeartbeatService;
 import com.block.sse.starter.service.SseManager;
 import com.block.sse.starter.service.SseMsgService;
+import com.block.sse.starter.service.impl.DefaultSseMsgService;
 import com.block.sse.starter.strategy.MessageHandler;
 import com.block.sse.starter.strategy.RedisMessageHandler;
 import org.slf4j.Logger;
@@ -96,8 +97,8 @@ public class SseAutoConfiguration {
     @Bean
     @ConditionalOnClass({RedisTemplate.class})
     @ConditionalOnProperty(prefix = "sse", name = "handler-type", havingValue = "redis", matchIfMissing = true)
-    @ConditionalOnMissingBean(MessageHandler.class)
-    public RedisMessageHandler redisMessageHandler(RedisTemplate<String, String> redisTemplate,
+    @ConditionalOnMissingBean
+    public MessageHandler redisMessageHandler(RedisTemplate<String, String> redisTemplate,
                                                    SseProperties properties) {
         log.info("Configuring Redis Message Handler");
         return new RedisMessageHandler(redisTemplate, properties);
@@ -109,7 +110,7 @@ public class SseAutoConfiguration {
     @Bean
     @ConditionalOnClass({RedisMessageListenerContainer.class})
     @ConditionalOnProperty(prefix = "sse", name = "redis-enabled", havingValue = "true", matchIfMissing = true)
-    @ConditionalOnMissingBean(name = "redisSseEventObserver")
+    @ConditionalOnMissingBean
     public RedisSseEventObserver redisSseEventObserver(RedisMessageListenerContainer listenerContainer,
                                                        SseProperties properties,
                                                        SseManager sseManager) {
@@ -132,10 +133,16 @@ public class SseAutoConfiguration {
      * 注册事件观察者到SSE管理器
      */
     @Bean
-    @ConditionalOnMissingBean(name = "sseObserverRegistrar")
+    @ConditionalOnMissingBean
     public SseObserverRegistrar sseObserverRegistrar(SseManager sseManager,
                                                      List<SseEventObserver> observers) {
         return new SseObserverRegistrar(sseManager, observers);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SseMsgService defaultSseMsgService() {
+        return new DefaultSseMsgService();
     }
 
     /**
