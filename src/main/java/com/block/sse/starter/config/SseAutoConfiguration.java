@@ -2,9 +2,11 @@ package com.block.sse.starter.config;
 
 import com.block.sse.starter.observer.RedisSseEventObserver;
 import com.block.sse.starter.observer.SseEventObserver;
+import com.block.sse.starter.service.ClientService;
 import com.block.sse.starter.service.HeartbeatService;
 import com.block.sse.starter.service.SseManager;
 import com.block.sse.starter.service.SseMsgService;
+import com.block.sse.starter.service.impl.DefaultClientService;
 import com.block.sse.starter.service.impl.DefaultSseMsgService;
 import com.block.sse.starter.strategy.MessageHandler;
 import com.block.sse.starter.strategy.RedisMessageHandler;
@@ -85,10 +87,10 @@ public class SseAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public SseManager sseManager(MessageHandler messageHandler, SseProperties properties, SseMsgService msgService) {
+    public SseManager sseManager(MessageHandler messageHandler, SseProperties properties, SseMsgService msgService, ClientService clientService) {
         log.info("Configuring SSE Manager with handler type: {}",
                 messageHandler != null ? messageHandler.getType() : "none");
-        return new SseManager(messageHandler, properties, msgService);
+        return new SseManager(messageHandler, properties, msgService, clientService);
     }
 
     /**
@@ -143,6 +145,12 @@ public class SseAutoConfiguration {
     @ConditionalOnMissingBean
     public SseMsgService defaultSseMsgService() {
         return new DefaultSseMsgService();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ClientService defaultClientService() {
+        return new DefaultClientService();
     }
 
     /**

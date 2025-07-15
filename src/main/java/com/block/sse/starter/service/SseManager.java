@@ -8,7 +8,6 @@ import com.block.sse.starter.strategy.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -21,7 +20,6 @@ import java.util.function.Consumer;
  * SSE连接管理器
  * 负责管理SSE连接的核心类，处理连接的建立、消息发送和连接关闭
  */
-@Component
 public class SseManager {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final List<SseEventObserver> observers = new ArrayList<>();
@@ -31,12 +29,14 @@ public class SseManager {
     private final MessageHandler messageHandler;
     private final SseProperties properties;
     private final SseMsgService msgService;
+    private final ClientService clientService;
 
 
-    public SseManager(@Autowired(required = false) MessageHandler messageHandler, SseProperties properties, SseMsgService msgService) {
+    public SseManager(@Autowired(required = false) MessageHandler messageHandler, SseProperties properties, SseMsgService msgService, ClientService clientService) {
         this.messageHandler = messageHandler;
         this.properties = properties;
         this.msgService = msgService;
+        this.clientService = clientService;
     }
 
     /**
@@ -75,6 +75,7 @@ public class SseManager {
         });
 
         emitters.put(clientId, emitter);
+        clientService.addClient(clientId);
         // 发送连接确认消息
         sendDirectMessage(clientId, DEFAULT_EVENT_ID, SystemEventEnum.CONNECT.name(), properties.getHeartbeatMessage());
         // 通知观察者
@@ -161,18 +162,6 @@ public class SseManager {
         disconnect(clientId);
         notifyObservers(obs -> obs.onError(clientId, e));
     }
-
-    /**
-     * 获取所有连接的状态
-     *
-     * @return 客户端ID到连接状态的映射
-     */
-    public Map<String, String> getStatus() {
-        Map<String, String> status = new ConcurrentHashMap<>();
-        emitters.forEach((clientId, emitter) -> status.put(clientId, "connected"));
-        return status;
-    }
-
     /**
      * 获取所有已连接的客户端ID列表
      *
@@ -192,6 +181,7 @@ public class SseManager {
         if (emitter != null) {
             try {
                 emitter.complete();
+                clientService.removeClient(clientId);
             } catch (Exception e) {
                 log.debug("Error completing SSE emitter for client: {}", clientId, e);
             }

@@ -11,7 +11,6 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -20,7 +19,6 @@ import java.util.concurrent.ConcurrentMap;
  * Redis SSE事件观察者
  * 处理Redis发布/订阅消息并转发给SSE客户端
  */
-@Component
 @ConditionalOnClass(RedisMessageListenerContainer.class)
 public class RedisSseEventObserver implements SseEventObserver {
     private final RedisMessageListenerContainer listenerContainer;

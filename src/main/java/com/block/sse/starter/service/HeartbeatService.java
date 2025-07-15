@@ -5,7 +5,6 @@ import com.block.sse.starter.enums.SystemEventEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeUnit;
  * 心跳服务
  * 定期向所有连接的客户端发送心跳消息以保持连接活跃
  */
-@Component
 @ConditionalOnProperty(prefix = "sse", name = "heartbeat-enabled", havingValue = "true", matchIfMissing = true)
 public class HeartbeatService {
     private final SseManager sseManager;

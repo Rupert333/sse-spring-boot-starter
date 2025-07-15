@@ -6,13 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 /**
  * Redis消息处理器
  * 通过Redis发布/订阅机制处理SSE消息
  */
-@Component
 @ConditionalOnClass(RedisTemplate.class)
 public class RedisMessageHandler implements MessageHandler {
     private final RedisTemplate<String, String> redisTemplate;

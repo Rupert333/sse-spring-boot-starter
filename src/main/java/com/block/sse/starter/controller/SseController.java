@@ -1,6 +1,7 @@
 package com.block.sse.starter.controller;
 
 import com.block.sse.starter.domain.MsgRequest;
+import com.block.sse.starter.service.ClientService;
 import com.block.sse.starter.service.SseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * SSE控制器
@@ -26,6 +27,8 @@ public class SseController {
 
     @Resource
     private SseManager sseManager;
+    @Resource
+    private ClientService clientService;
 
     private static Logger log = LoggerFactory.getLogger(SseController.class);
 
@@ -65,8 +68,8 @@ public class SseController {
      * @return 连接状态映射
      */
     @GetMapping("/status")
-    public Map<String, String> getStatus() {
-        return sseManager.getStatus();
+    public Set<String> getStatus() {
+        return clientService.getConnectedClients();
     }
 }
 
