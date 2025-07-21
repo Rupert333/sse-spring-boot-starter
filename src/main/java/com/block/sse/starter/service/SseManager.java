@@ -111,7 +111,14 @@ public class SseManager {
             log.warn("sending message directly  client {}，eventName:{}", clientId, eventName);
             return sendDirectMessage(clientId, eventId, eventName, message);
         }
+
         try {
+            Set<String> connectedClients = clientService.getConnectedClients();
+            if (!connectedClients.contains(clientId)) {
+                log.warn("No SSE connection found for client: {}", clientId);
+                return false;
+            }
+
             messageHandler.handleMessage(clientId, eventId, eventName, message);
             return true;
         } catch (Exception e) {
@@ -176,7 +183,7 @@ public class SseManager {
      *
      * @param clientId 客户端ID
      */
-    private void disconnect(String clientId) {
+    public void disconnect(String clientId) {
         SseEmitter emitter = emitters.remove(clientId);
         if (emitter != null) {
             try {

@@ -48,6 +48,18 @@ public class SseController {
     }
 
     /**
+     * 关闭SSE连接
+     *
+     * @param clientId 客户端ID
+     * @return SSE发射器
+     */
+    @GetMapping("/close/{clientId}")
+    public void close(@PathVariable("clientId") String clientId) {
+        log.info("Client :{} close", clientId);
+        sseManager.disconnect(clientId);
+    }
+
+    /**
      * 发送消息到指定客户端
      *
      * @param clientId 客户端ID
