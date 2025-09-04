@@ -57,7 +57,7 @@ public class RedisSseEventObserver implements SseEventObserver {
                         // 直接发送消息给SSE客户端
                         sseManager.sendDirectMessage(clientId, request.getEventId(), request.getEventName(), request.getData());
                     } catch (Exception e) {
-                        log.error("Error processing Redis message for client {}", clientId, e);
+                        log.info("Error processing Redis message for client {}", clientId, e);
                         sseManager.handleClientError(clientId, e);
                     }
                 }
@@ -69,7 +69,7 @@ public class RedisSseEventObserver implements SseEventObserver {
 
             log.debug("Redis subscription created for client: {}", clientId);
         } catch (Exception e) {
-            log.error("Failed to create Redis subscription for client: {}", clientId, e);
+            log.info("Failed to create Redis subscription for client: {}", clientId, e);
         }
     }
 
@@ -83,13 +83,13 @@ public class RedisSseEventObserver implements SseEventObserver {
                 log.debug("Redis subscription removed for client: {}", clientId);
             }
         } catch (Exception e) {
-            log.error("Failed to remove Redis subscription for client: {}", clientId, e);
+            log.info("Failed to remove Redis subscription for client: {}", clientId, e);
         }
     }
 
     @Override
     public void onError(String clientId, Exception e) {
-        log.error("SSE error for client: {}", clientId, e);
+        log.info("SSE error for client: {}", clientId, e);
         onDisconnect(clientId);
     }
 }

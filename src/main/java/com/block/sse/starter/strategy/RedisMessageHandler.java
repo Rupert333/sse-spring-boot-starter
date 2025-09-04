@@ -31,7 +31,7 @@ public class RedisMessageHandler implements MessageHandler {
             redisTemplate.convertAndSend(channel, request.toString());
             log.debug("Message sent to Redis channel: {} for client: {}, eventName{}", channel, clientId, eventName);
         } catch (Exception e) {
-            log.error("Failed to send message to Redis for client: {}", clientId, e);
+            log.info("Failed to send message to Redis for client: {}", clientId, e);
             throw e;
         }
     }

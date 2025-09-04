@@ -61,7 +61,7 @@ public class SseAutoConfiguration {
                     log.warn("Custom banner.txt not found in resources.");
                 }
             } catch (IOException e) {
-                log.error("Error reading custom banner.txt", e);
+                log.info("Error reading custom banner.txt", e);
             }
 
             // 2. 打印 SSE 配置信息

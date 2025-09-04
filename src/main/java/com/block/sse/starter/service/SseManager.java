@@ -69,7 +69,7 @@ public class SseManager {
         });
 
         emitter.onError((ex) -> {
-            log.error("SSE connection error for client: {}", clientId, ex);
+            log.info("SSE connection error for client: {}", clientId, ex);
             disconnect(clientId);
             notifyObservers(obs -> obs.onError(clientId, (Exception) ex));
         });
@@ -122,7 +122,7 @@ public class SseManager {
             messageHandler.handleMessage(clientId, eventId, eventName, message);
             return true;
         } catch (Exception e) {
-            log.error("Error sending message to client {} via handler", clientId, e);
+            log.info("Error sending message to client {} via handler", clientId, e);
             notifyObservers(obs -> obs.onError(clientId, e));
             return false;
         }
@@ -151,7 +151,7 @@ public class SseManager {
             log.debug("Message sent directly to client: {}, eventName:{}", clientId, eventName);
             return true;
         } catch (IOException e) {
-            log.error("Failed to send message to client: {}", clientId, e);
+            log.info("Failed to send message to client: {}", clientId, e);
             disconnect(clientId);
             notifyObservers(obs -> obs.onError(clientId, e));
             return false;
@@ -165,7 +165,7 @@ public class SseManager {
      * @param e        异常
      */
     public void handleClientError(String clientId, Exception e) {
-        log.error("Client error for {}", clientId, e);
+        log.info("Client error for {}", clientId, e);
         disconnect(clientId);
         notifyObservers(obs -> obs.onError(clientId, e));
     }
@@ -205,7 +205,7 @@ public class SseManager {
             try {
                 action.accept(observer);
             } catch (Exception e) {
-                log.error("Error notifying observer", e);
+                log.info("Error notifying observer", e);
             }
         });
     }
